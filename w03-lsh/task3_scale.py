@@ -17,6 +17,8 @@ It also checks **recall** - which of the truly similar pairs you found. Skipping
 comparisons is easy; skipping comparisons without losing the pairs is the task.
 """
 
+from collections import defaultdict
+
 
 class BruteForce:
     """Correct, and quadratic."""
@@ -61,7 +63,43 @@ class YourFinder:
     """
 
     def __init__(self, threshold):
-        raise NotImplementedError("write your finder")
+        self.threshold = threshold
+        # 120 hashes in 30 bands of four rows: the S-curve step is about .427.
+        # Spread coefficients over the full prime range.  Small consecutive
+        # coefficients make the small integer shingles nearly monotonic,
+        # which is not an independent minhash family.
+        self.hashes = [
+            ((1_103_515_245 * (i + 1) + 12_345) % 4_294_967_311,
+             (2_147_483_647 * (i + 1) + 97_531) % 4_294_967_311)
+            for i in range(120)
+        ]
+        self.bands = 30
+        self.prime = 4_294_967_311
 
     def find(self, docs, similarity):
-        raise NotImplementedError
+        # Minhash signatures are built directly from the document shingles.
+        # The following arithmetic hashes are deterministic, avoiding a
+        # process-randomized Python hash and making benchmark results stable.
+        signatures = []
+        for doc in docs:
+            signatures.append([
+                min((a * shingle + b) % self.prime for shingle in doc)
+                if doc else self.prime
+                for a, b in self.hashes
+            ])
+
+        rows_per_band = len(self.hashes) // self.bands
+        candidates = set()
+        for band in range(self.bands):
+            buckets = defaultdict(list)
+            start = band * rows_per_band
+            end = start + rows_per_band
+            for index, signature in enumerate(signatures):
+                buckets[tuple(signature[start:end])].append(index)
+            for bucket in buckets.values():
+                for offset, left in enumerate(bucket):
+                    for right in bucket[offset + 1:]:
+                        candidates.add((left, right))
+
+        return {(i, j) for i, j in candidates
+                if similarity(docs[i], docs[j]) >= self.threshold}

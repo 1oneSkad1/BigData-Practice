@@ -17,6 +17,8 @@ and the harness checks you against it.
     python3 task1_minhash.py --verify
 """
 import argparse
+from collections import defaultdict
+from itertools import combinations
 
 # §3.3.5. Rows are elements 0..4, columns are the sets S1..S4.
 BOOK = [[1, 0, 0, 1],
@@ -30,7 +32,8 @@ BOOK_HASHES = [lambda r: (r + 1) % 5, lambda r: (3 * r + 1) % 5]
 
 def jaccard(a, b):
     """|a and b| / |a or b|. Empty union is 0, not an error."""
-    raise NotImplementedError("jaccard similarity")
+    union = a | b
+    return len(a & b) / len(union) if union else 0.0
 
 
 def minhash_signatures(columns, hashes, n_rows):
@@ -48,7 +51,25 @@ def minhash_signatures(columns, hashes, n_rows):
     written something correct that does not survive a dataset that does not fit
     in memory, and not fitting in memory is what this course is about.
     """
-    raise NotImplementedError("signature matrix")
+    # An inverted index lets a row update exactly the columns containing it.
+    # We still consume rows in order, once, rather than inspecting each column.
+    row_columns = defaultdict(list)
+    for column, rows in enumerate(columns):
+        for row in rows:
+            if 0 <= row < n_rows:
+                row_columns[row].append(column)
+
+    signatures = [[float("inf")] * len(hashes) for _ in columns]
+    for row in range(n_rows):
+        present = row_columns.get(row, ())
+        if not present:
+            continue
+        values = [h(row) for h in hashes]
+        for column in present:
+            for index, value in enumerate(values):
+                if value < signatures[column][index]:
+                    signatures[column][index] = value
+    return signatures
 
 
 def lsh_candidates(signatures, bands):
@@ -60,7 +81,28 @@ def lsh_candidates(signatures, bands):
     The signature length must divide evenly by `bands`, or you have to decide
     what to do with the remainder. Say what you decided.
     """
-    raise NotImplementedError("LSH candidate pairs")
+    if bands <= 0:
+        raise ValueError("bands must be positive")
+    if not signatures:
+        return set()
+    length = len(signatures[0])
+    if length == 0 or length % bands:
+        raise ValueError("signature length must divide evenly by bands")
+    if any(len(signature) != length for signature in signatures):
+        raise ValueError("all signatures must have the same length")
+
+    rows_per_band = length // bands
+    candidates = set()
+    for band in range(bands):
+        buckets = defaultdict(list)
+        start = band * rows_per_band
+        end = start + rows_per_band
+        for column, signature in enumerate(signatures):
+            # Include band number so equal rows from separate bands do not mix.
+            buckets[(band, tuple(signature[start:end]))].append(column)
+        for bucket in buckets.values():
+            candidates.update(combinations(bucket, 2))
+    return candidates
 
 
 # ------------------------------------------------------------------- harness

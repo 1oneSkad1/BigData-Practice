@@ -41,6 +41,21 @@ def timed(fn, *args):
     return result, elapsed, peak
 
 
+def measurement_docs(bench, n):
+    """Return exactly n deterministic documents, including above bench.N_DOCS.
+
+    The task asks for measurements beyond the benchmark's one 2,120-document
+    fixture.  Independent fixed-seed blocks retain the same shingle
+    distribution without pretending that ``docs[:4000]`` contains 4,000 docs.
+    """
+    docs = []
+    block, seed = 0, bench.SEED
+    while len(docs) < n:
+        docs.extend(bench.build(seed + block))
+        block += 1
+    return docs[:n]
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--sizes", default="250,500,1000,2000",
@@ -58,7 +73,7 @@ def main():
 
     rows = []
     for n in [int(x) for x in a.sizes.split(",")]:
-        docs = bench.build()[:n]
+        docs = measurement_docs(bench, n)
         sim = bench.Counter()
         _, t_brute, m_brute = timed(BruteForce(a.threshold).find, docs, sim)
         c_brute = sim.calls
@@ -84,7 +99,11 @@ def main():
     path = os.path.join(OUT, "crossover.json")
     prior = json.load(open(path)) if os.path.exists(path) else {"runs": []}
     prior["machine"] = machine()
+    # A rerun replaces the same size instead of making the summary ambiguous.
+    prior["runs"] = [run for run in prior["runs"]
+                     if run["n"] not in {row["n"] for row in rows}]
     prior["runs"].extend(rows)
+    prior["runs"].sort(key=lambda run: run["n"])
     json.dump(prior, open(path, "w"), indent=2)
     print(f"\n  -> out/crossover.json  ({len(prior['runs'])} measurement(s))")
     print("  Keep raising --sizes until something becomes unpleasant. Record where.")
