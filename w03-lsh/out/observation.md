@@ -2,29 +2,18 @@
 
 ## Task 1
 
-The signature builder makes one sequential pass through rows and updates only
-the columns indexed by the current row.  A pass per column would repeatedly
-scan an out-of-core matrix, turning sequential I/O into many full reads.  I
-reject signature lengths that do not divide evenly by the band count rather
-than silently dropping leftover hashes.  S1--S4 estimates as 1.0 with two
-hashes although its true Jaccard score is 2/3; using more independent hashes
-would narrow the sampling error, at the cost of signature storage and hashing.
+같은 데이터를 여러 번 읽지 않으려고 행을 한 번씩만 확인했다.
+해시 개수가 밴드 수로 나누어떨어지지 않으면 오류가 나게 했다.
+S1과 S4는 실제 유사도가 2/3인데 1.0으로 나왔다. 해시를 늘리면 오차를 줄일 수 있지만 시간과 메모리가 더 든다.
 
 ## Task 2
 
-On the recorded Windows/AMD64 runtime, crossover was between 2,000 and 4,000
-documents: at 4,000, brute force took 34.93 s and LSH 29.31 s.  The brute
-doubling ratios through 4,000 were 3.51x, 4.09x, 4.09x, 4.19x, and 4.14x,
-consistent with a quadratic curve.  The 4,000-document measurement took 64.24
-s in total, the first unpleasant wait; LSH's peak memory was 20.55 MiB.
+Windows의 AMD CPU에서 실행했고, 문서 4,000개에서 LSH가 더 빨랐다(전체 비교 34.93초, LSH 29.31초).
+문서가 2,000개에서 4,000개로 늘 때 전체 비교 시간은 약 4.14배가 됐다.
+4,000개에서는 두 방법을 합쳐 약 64초가 걸려 기다리는 시간이 길었다.
 
 ## Task 3
 
-I used 120 hashes split into 30 bands of 4 rows.  Its nominal S-curve step is
-`(1/30)^(1/4) = 0.427`; putting it below the 0.6 threshold favors recall.  At
-similarity 0.6 the candidate probability is
-`1 - (1 - 0.6^4)^30 = 98.4%`.  The benchmark obtained 97.5% recall while
-avoiding 99.92% of comparisons.  Moving the step above the threshold would cut
-more candidates but loses recall; on a much larger system hashing itself stops
-being free once CPU, memory bandwidth, signature storage, and bucket shuffles
-become dominant.
+해시 120개를 30개 밴드로 나눴다. 비슷한 쌍을 덜 놓치려고 기준점 `(1/30)^(1/4) ≈ 0.427`을 0.6보다 낮게 잡았다.
+실제로 비슷한 쌍의 97.5%를 찾았고, 비교 횟수는 99.92% 줄었다.
+기준점을 높이면 비슷한 쌍을 더 놓칠 수 있다. 데이터가 많아지면 해시를 만드는 시간도 무시하기 어려울 것 같다.
