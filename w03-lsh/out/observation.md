@@ -2,18 +2,18 @@
 
 ## Task 1
 
-같은 데이터를 여러 번 읽지 않으려고 행을 한 번씩만 확인했다.
-해시 개수가 밴드 수로 나누어떨어지지 않으면 오류가 나게 했다.
-S1과 S4는 실제 유사도가 2/3인데 1.0으로 나왔다. 해시를 늘리면 오차를 줄일 수 있지만 시간과 메모리가 더 든다.
+I read each row once to avoid reading the same data again.
+If the hash count does not divide evenly into bands, the code raises an error.
+S1 and S4 gave 1.0 instead of 2/3. More hashes could reduce the error but need more time and memory.
 
 ## Task 2
 
-Windows의 AMD CPU에서 실행했고, 문서 4,000개에서 LSH가 더 빨랐다(전체 비교 34.93초, LSH 29.31초).
-문서가 2,000개에서 4,000개로 늘 때 전체 비교 시간은 약 4.14배가 됐다.
-4,000개에서는 두 방법을 합쳐 약 64초가 걸려 기다리는 시간이 길었다.
+I ran this on Windows with an AMD CPU. LSH became faster between 2,000 and 4,000 documents.
+At 4,000, brute force took 34.93 seconds and LSH took 29.31 seconds. Doubling from 2,000 made brute force about 4.14 times slower.
+Both runs together took about 64 seconds at 4,000, so the wait felt long.
 
 ## Task 3
 
-해시 120개를 30개 밴드로 나눴다. 비슷한 쌍을 덜 놓치려고 기준점 `(1/30)^(1/4) ≈ 0.427`을 0.6보다 낮게 잡았다.
-실제로 비슷한 쌍의 97.5%를 찾았고, 비교 횟수는 99.92% 줄었다.
-기준점을 높이면 비슷한 쌍을 더 놓칠 수 있다. 데이터가 많아지면 해시를 만드는 시간도 무시하기 어려울 것 같다.
+I used 120 hashes and 30 bands. The step is `(1/30)^(1/4) ≈ 0.427`, below 0.6 to miss fewer similar pairs.
+It found 97.5% of the similar pairs and skipped 99.92% of comparisons.
+A higher step could miss more pairs. With much more data, making the hashes would also take a lot of time.
