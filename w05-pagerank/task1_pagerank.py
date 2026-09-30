@@ -41,7 +41,32 @@ def pagerank(graph, beta=0.85, iterations=100, tol=1e-10):
     you should call it converged. Return the ranks, and set `pagerank.iterations`
     to how many you actually used, because Task 2 measures that.
     """
-    raise NotImplementedError("implement PageRank")
+    n = len(graph)
+    pagerank.iterations = 0
+    if n == 0:
+        return {}
+
+    ranks = {node: 1.0 / n for node in graph}
+    for step in range(1, iterations + 1):
+        # Distribute dangling rank and teleportation uniformly across all nodes.
+        dangling = sum(ranks[node] for node, outs in graph.items() if not outs)
+        base = (1 - beta) / n + beta * dangling / n
+        new_ranks = {node: base for node in graph}
+
+        for node, outs in graph.items():
+            if outs:
+                share = beta * ranks[node] / len(outs)
+                for target in outs:
+                    new_ranks[target] += share
+
+        # Use only the previous ranks, then replace the complete vector.
+        delta = sum(abs(new_ranks[node] - ranks[node]) for node in graph)
+        ranks = new_ranks
+        pagerank.iterations = step
+        if delta < tol:
+            break
+
+    return ranks
 
 
 def pagerank_no_teleport(graph, iterations=100):
@@ -50,7 +75,22 @@ def pagerank_no_teleport(graph, iterations=100):
     It exists so you can watch both failures happen rather than take them on
     trust. The harness checks that it really does fail.
     """
-    raise NotImplementedError("implement the broken version")
+    n = len(graph)
+    if n == 0:
+        return {}
+
+    ranks = {node: 1.0 / n for node in graph}
+    for _ in range(iterations):
+        new_ranks = {node: 0.0 for node in graph}
+        for node, outs in graph.items():
+            if outs:
+                share = ranks[node] / len(outs)
+                for target in outs:
+                    new_ranks[target] += share
+            # Dead ends send nothing; deliberately do not restore lost rank.
+        ranks = new_ranks
+
+    return ranks
 
 
 # ------------------------------------------------------------------- harness

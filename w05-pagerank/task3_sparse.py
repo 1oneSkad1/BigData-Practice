@@ -86,10 +86,40 @@ class YourPageRank:
     """
 
     def __init__(self, beta=0.85, tol=1e-10, max_iter=100):
-        raise NotImplementedError("write your PageRank")
+        self.beta, self.tol, self.max_iter = beta, tol, max_iter
+        self.iterations = 0
+        self._peak_floats = 2
 
     def run(self, graph):
-        raise NotImplementedError
+        n = len(graph)
+        self.iterations = 0
+        # Two rank vectors, plus a conservative allowance of 16 scalar floats
+        # for parameters, accumulators, and temporary arithmetic results.
+        # The existing adjacency lists contain node labels, not edge weights.
+        self._peak_floats = 2 * n + 16
+        if not n:
+            return {}
+
+        ranks = {node: 1.0 / n for node in graph}
+        for step in range(1, self.max_iter + 1):
+            dangling = sum(ranks[node] for node, outs in graph.items() if not outs)
+            base = (1 - self.beta) / n + self.beta * dangling / n
+            new_ranks = {node: base for node in graph}
+            for node, outs in graph.items():
+                if outs:
+                    share = self.beta * ranks[node] / len(outs)
+                    for target in outs:
+                        new_ranks[target] += share
+
+            delta = sum(abs(new_ranks[node] - ranks[node]) for node in graph)
+            ranks = new_ranks
+            # Release this alias before allocating the next vector.
+            del new_ranks
+            self.iterations = step
+            if delta < self.tol:
+                break
+        return ranks
 
     def memory_floats(self):
-        raise NotImplementedError
+        """Conservative peak float-slot count, not total Python memory bytes."""
+        return self._peak_floats
