@@ -14,7 +14,7 @@ This repository contains my coursework and assignment submissions for the 2026-2
 | Week 3 | Finding Similar Items with MinHash and LSH | In progress | [`w03-lsh/`](w03-lsh/) |
 | Week 4 | Mining Data Streams | Not started | [`w04-stream/`](w04-stream/) |
 | Week 5 | PageRank and Link Analysis | Not started | [`w05-pagerank/`](w05-pagerank/) |
-| Week 6 | Apriori and Frequent Itemsets | Not started | [`w06-apriori/`](w06-apriori/) |
+| Week 6 | Apriori and Frequent Itemsets | Completed | [`w06-apriori/`](w06-apriori/) |
 | Week 7 | K-Means Clustering | Not started | [`w07-kmeans/`](w07-kmeans/) |
 
 ## Current Assignment: Week 3

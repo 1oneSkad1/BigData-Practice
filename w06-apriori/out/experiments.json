@@ -1,0 +1,168 @@
+{
+  "task1": {
+    "frequent_items": 1849,
+    "possible_survivor_pairs": 1708476,
+    "top_rule": [
+      1468,
+      0,
+      0.8387096774193549,
+      1.2824306994179737
+    ],
+    "reverse_rule": [
+      0,
+      1468,
+      0.003975535168195718,
+      1.2824306994179737
+    ],
+    "pair_support": 52
+  },
+  "bucket_experiments": [
+    {
+      "baskets": 20000,
+      "peak_counters": 13324,
+      "peak_bytes": 4629566,
+      "seconds": 9.945460299961269,
+      "bucket_count": 1000003,
+      "bucket_bytes": 4000012,
+      "bitmap_bytes": 125001,
+      "exact_counts_match": true
+    },
+    {
+      "baskets": 20000,
+      "peak_counters": 149191,
+      "peak_bytes": 16946718,
+      "seconds": 10.869318400043994,
+      "bucket_count": 100003,
+      "bucket_bytes": 400012,
+      "bitmap_bytes": 12501,
+      "exact_counts_match": true
+    },
+    {
+      "baskets": 20000,
+      "peak_counters": 820259,
+      "peak_bytes": 108115436,
+      "seconds": 14.265306199900806,
+      "bucket_count": 10007,
+      "bucket_bytes": 40028,
+      "bitmap_bytes": 1251,
+      "exact_counts_match": true
+    }
+  ],
+  "crossover": [
+    {
+      "baskets": 100,
+      "baseline": {
+        "baskets": 100,
+        "peak_counters": 0,
+        "peak_bytes": 55632,
+        "seconds": 0.0007499000057578087,
+        "bucket_count": 0,
+        "bucket_bytes": 0,
+        "bitmap_bytes": 0
+      },
+      "pcy": {
+        "baskets": 100,
+        "peak_counters": 0,
+        "peak_bytes": 4217958,
+        "seconds": 0.29214449995197356,
+        "bucket_count": 1000003,
+        "bucket_bytes": 4000012,
+        "bitmap_bytes": 125001
+      }
+    },
+    {
+      "baskets": 500,
+      "baseline": {
+        "baskets": 500,
+        "peak_counters": 136,
+        "peak_bytes": 110896,
+        "seconds": 0.003409500000998378,
+        "bucket_count": 0,
+        "bucket_bytes": 0,
+        "bitmap_bytes": 0
+      },
+      "pcy": {
+        "baskets": 500,
+        "peak_counters": 12,
+        "peak_bytes": 4323830,
+        "seconds": 0.4170055999420583,
+        "bucket_count": 1000003,
+        "bucket_bytes": 4000012,
+        "bitmap_bytes": 125001
+      }
+    },
+    {
+      "baskets": 1000,
+      "baseline": {
+        "baskets": 1000,
+        "peak_counters": 1078,
+        "peak_bytes": 131808,
+        "seconds": 0.007031399989500642,
+        "bucket_count": 0,
+        "bucket_bytes": 0,
+        "bitmap_bytes": 0
+      },
+      "pcy": {
+        "baskets": 1000,
+        "peak_counters": 60,
+        "peak_bytes": 4336142,
+        "seconds": 0.5036293000448495,
+        "bucket_count": 1000003,
+        "bucket_bytes": 4000012,
+        "bitmap_bytes": 125001
+      }
+    },
+    {
+      "baskets": 2000,
+      "baseline": {
+        "baskets": 2000,
+        "peak_counters": 6228,
+        "peak_bytes": 746592,
+        "seconds": 0.03603719989769161,
+        "bucket_count": 0,
+        "bucket_bytes": 0,
+        "bitmap_bytes": 0
+      },
+      "pcy": {
+        "baskets": 2000,
+        "peak_counters": 184,
+        "peak_bytes": 4354446,
+        "seconds": 0.8809003001078963,
+        "bucket_count": 1000003,
+        "bucket_bytes": 4000012,
+        "bitmap_bytes": 125001
+      }
+    },
+    {
+      "baskets": 5000,
+      "baseline": {
+        "baskets": 5000,
+        "peak_counters": 50168,
+        "peak_bytes": 6707640,
+        "seconds": 0.20977140008471906,
+        "bucket_count": 0,
+        "bucket_bytes": 0,
+        "bitmap_bytes": 0
+      },
+      "pcy": {
+        "baskets": 5000,
+        "peak_counters": 915,
+        "peak_bytes": 4406150,
+        "seconds": 1.8098502000793815,
+        "bucket_count": 1000003,
+        "bucket_bytes": 4000012,
+        "bitmap_bytes": 125001
+      }
+    }
+  ],
+  "baseline": {
+    "baskets": 20000,
+    "peak_counters": 820259,
+    "peak_bytes": 107871968,
+    "seconds": 2.717674400191754,
+    "bucket_count": 0,
+    "bucket_bytes": 0,
+    "bitmap_bytes": 0
+  },
+  "randomized_bruteforce_cases": 50
+}

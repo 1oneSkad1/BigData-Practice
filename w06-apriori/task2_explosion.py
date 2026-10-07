@@ -13,15 +13,37 @@ your laptop rather than about the algorithm.
 Lower the threshold until something gives. Write down where and what.
 """
 import argparse, json, os, platform, time, tracemalloc
+import ctypes
+if os.name == "nt":
+    import winreg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out")
 
 
 def machine():
-    return {"platform": platform.platform(),
-            "processor": platform.processor() or platform.machine(),
-            "python": platform.python_version()}
+    details = {"platform": platform.platform(),
+               "processor": platform.processor() or platform.machine(),
+               "python": platform.python_version(),
+               "background": "Codex desktop session; full host process inventory unavailable in sandbox"}
+    if os.name == "nt":
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                               r"HARDWARE\DESCRIPTION\System\CentralProcessor\0") as key:
+                details["processor"] = winreg.QueryValueEx(key, "ProcessorNameString")[0].strip()
+        except OSError as error:
+            details["cpu_note"] = str(error)
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [("length", ctypes.c_ulong), ("load", ctypes.c_ulong)] + [
+                (name, ctypes.c_ulonglong) for name in
+                ("total_physical", "available_physical", "total_page", "available_page",
+                 "total_virtual", "available_virtual", "extended_virtual")]
+        status = MemoryStatus()
+        status.length = ctypes.sizeof(status)
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            details["ram_bytes"] = status.total_physical
+            details["available_ram_bytes_at_start"] = status.available_physical
+    return details
 
 
 def main():
@@ -34,6 +56,7 @@ def main():
     from task3_pcy import PlainApriori
     baskets = bench.build()
 
+    metadata = machine()
     rows = []
     for support in [int(x) for x in a.supports.split(",")]:
         algo = PlainApriori(support)
@@ -54,7 +77,7 @@ def main():
 
     path = os.path.join(OUT, "explosion.json")
     prior = json.load(open(path)) if os.path.exists(path) else {"runs": []}
-    prior["machine"] = machine()
+    prior["machine"] = metadata
     prior["runs"].extend(rows)
     json.dump(prior, open(path, "w"), indent=2)
     print(f"\n  -> out/explosion.json  ({len(prior['runs'])} run(s))")

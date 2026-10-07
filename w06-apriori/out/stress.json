@@ -1,0 +1,47 @@
+{
+  "seed": 246,
+  "items": 20000,
+  "baskets": 40000,
+  "draws_per_basket": 40,
+  "memory_budget_bytes": 268435456,
+  "time_budget_seconds": 30,
+  "runs": [
+    {
+      "support": 400,
+      "processed_baskets": 40000,
+      "peak_counters": 87918,
+      "peak_bytes": 14132318,
+      "seconds": 1.259812599979341,
+      "status": "completed",
+      "frequent_pairs": 1165
+    },
+    {
+      "support": 200,
+      "processed_baskets": 40000,
+      "peak_counters": 470828,
+      "peak_bytes": 54352096,
+      "seconds": 3.0177694999147207,
+      "status": "completed",
+      "frequent_pairs": 3365
+    },
+    {
+      "support": 100,
+      "processed_baskets": 40000,
+      "peak_counters": 1852619,
+      "peak_bytes": 215948416,
+      "seconds": 5.6206392999738455,
+      "status": "completed",
+      "frequent_pairs": 9450
+    },
+    {
+      "support": 50,
+      "processed_baskets": 15900,
+      "peak_counters": 2803634,
+      "peak_bytes": 431637760,
+      "seconds": 4.215331499930471,
+      "status": "stopped at artificial 256 MiB allocation budget",
+      "frequent_pairs": null
+    }
+  ],
+  "note": "Expanded data; a controlled budget stop is not physical RAM exhaustion. Basket storage is outside tracing."
+}

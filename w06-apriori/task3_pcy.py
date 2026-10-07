@@ -18,6 +18,7 @@ spending pass one's spare memory to shrink it.
 Correctness first: you must find exactly the same frequent pairs. Finding fewer
 is not an optimisation.
 """
+from array import array
 from collections import Counter
 from itertools import combinations
 
@@ -75,8 +76,57 @@ class YourAlgorithm:
         observation.md asks about it
     """
 
-    def __init__(self, support):
-        raise NotImplementedError("write your algorithm")
+    def __init__(self, support, bucket_count=1_000_003):
+        if support < 1 or bucket_count < 1:
+            raise ValueError("support and bucket_count must be positive")
+        self.support = support
+        self.bucket_count = bucket_count
+        self.peak_counters = 0
+        self.bucket_bytes = 0
+        self.bitmap_bytes = 0
 
     def run(self, baskets):
-        raise NotImplementedError
+        baskets = list(baskets)
+        self.peak_counters = 0
+        # Dense IDs support arbitrary hashable items and reproducible hashing.
+        ids = {}
+        singles = Counter()
+        buckets = array("I", [0]) * self.bucket_count
+        self.bucket_bytes = len(buckets) * buckets.itemsize
+        modulus = self.bucket_count
+
+        def bucket(a, b):
+            # Stable integer mixing; Python's salted string hash is not used.
+            return ((a * 0x9E3779B1) ^ (b * 0x85EBCA77)) % modulus
+
+        for basket_items in baskets:
+            items = set(basket_items)
+            singles.update(items)
+            for item in items:
+                if item not in ids:
+                    ids[item] = len(ids)
+            for a, b in combinations(sorted(ids[item] for item in items), 2):
+                index = bucket(a, b)
+                # Only the threshold predicate matters; saturation avoids overflow.
+                if buckets[index] < self.support:
+                    buckets[index] += 1
+
+        frequent = {ids[item] for item, count in singles.items()
+                    if count >= self.support}
+        bitmap = bytearray((modulus + 7) // 8)
+        for index, count in enumerate(buckets):
+            if count >= self.support:
+                bitmap[index >> 3] |= 1 << (index & 7)
+        self.bitmap_bytes = len(bitmap)
+        del buckets  # The full bucket counts are gone before pair counting.
+        reverse = {index: item for item, index in ids.items()}
+        pair_counts = Counter()
+        for basket_items in baskets:
+            items = sorted({ids[item] for item in basket_items} & frequent)
+            for a, b in combinations(items, 2):
+                index = bucket(a, b)
+                if bitmap[index >> 3] & (1 << (index & 7)):
+                    pair_counts[(a, b)] += 1
+            self.peak_counters = max(self.peak_counters, len(pair_counts))
+        return {frozenset((reverse[a], reverse[b])): count
+                for (a, b), count in pair_counts.items() if count >= self.support}
