@@ -1,0 +1,52 @@
+{
+  "captured_on": "2026-10-07 (Asia/Seoul)",
+  "source": "Local Windows CIM and Get-Process snapshot before measurements",
+  "cpu": "Intel(R) Core(TM) Ultra 5 228V",
+  "ram_total_kib": 33041104,
+  "ram_available_kib": 15195864,
+  "background_processes": [
+    {
+      "name": "WorkloadsSessionHost",
+      "working_set_mb": 2657
+    },
+    {
+      "name": "Memory Compression",
+      "working_set_mb": 1502
+    },
+    {
+      "name": "ChatGPT",
+      "working_set_mb": 585
+    },
+    {
+      "name": "ChatGPT",
+      "working_set_mb": 429
+    },
+    {
+      "name": "explorer",
+      "working_set_mb": 399
+    },
+    {
+      "name": "ChatGPT",
+      "working_set_mb": 338
+    },
+    {
+      "name": "svchost",
+      "working_set_mb": 329
+    },
+    {
+      "name": "MsMpEng",
+      "working_set_mb": 325
+    },
+    {
+      "name": "ChatGPT",
+      "working_set_mb": 300
+    },
+    {
+      "name": "chrome",
+      "working_set_mb": 293
+    }
+  ],
+  "measurement_environment": "Local Codex restricted execution; Python 3.14.3; tracemalloc enabled in both phases",
+  "practical_time_budget_seconds": 30,
+  "budget_note": "Interactive per-method waiting budget, not a RAM exhaustion or hard capacity claim."
+}

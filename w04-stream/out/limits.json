@@ -1,0 +1,112 @@
+{
+  "runs": [
+    {
+      "n": 100000,
+      "true_distinct": 36702,
+      "exact_s": 0.12783119990490377,
+      "exact_peak_bytes": 3925492,
+      "fm_estimate": 34614.72863598782,
+      "fm_s": 0.6702340999618173,
+      "fm_peak_bytes": 4200,
+      "fm_ratio": 0.9431292200966656
+    },
+    {
+      "n": 400000,
+      "true_distinct": 146970,
+      "exact_s": 0.5522628999315202,
+      "exact_peak_bytes": 11591174,
+      "fm_estimate": 86215.13220407054,
+      "fm_s": 2.5154661999549717,
+      "fm_peak_bytes": 4117,
+      "fm_ratio": 0.5866172157860144
+    },
+    {
+      "n": 1600000,
+      "true_distinct": 587625,
+      "exact_s": 2.260675499914214,
+      "exact_peak_bytes": 46647456,
+      "fm_estimate": 410110.5945519237,
+      "fm_s": 10.75616250000894,
+      "fm_peak_bytes": 4021,
+      "fm_ratio": 0.6979120945363517
+    },
+    {
+      "n": 6400000,
+      "true_distinct": 2349909,
+      "exact_s": 9.86077390005812,
+      "exact_peak_bytes": 188287414,
+      "fm_estimate": 2558378.5917676063,
+      "fm_s": 44.120809300104156,
+      "fm_peak_bytes": 4042,
+      "fm_ratio": 1.0887138998861685
+    },
+    {
+      "n": 25000000,
+      "true_distinct": 9179304,
+      "exact_s": 44.284485899843276,
+      "exact_peak_bytes": 744742556,
+      "fm_estimate": 9245020.178464785,
+      "fm_s": 184.30020079994574,
+      "fm_peak_bytes": 4098,
+      "fm_ratio": 1.0071591678916816
+    }
+  ],
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 189 Stepping 1, GenuineIntel",
+    "python": "3.14.3",
+    "cpu_name": "Intel(R) Core(TM) Ultra 5 228V",
+    "ram_total_kib": 33041104,
+    "ram_available_kib_at_start": 15195864,
+    "background_processes_at_start": [
+      {
+        "name": "WorkloadsSessionHost",
+        "working_set_mb": 2657
+      },
+      {
+        "name": "Memory Compression",
+        "working_set_mb": 1502
+      },
+      {
+        "name": "ChatGPT",
+        "working_set_mb": 585
+      },
+      {
+        "name": "ChatGPT",
+        "working_set_mb": 429
+      },
+      {
+        "name": "explorer",
+        "working_set_mb": 399
+      },
+      {
+        "name": "ChatGPT",
+        "working_set_mb": 338
+      },
+      {
+        "name": "svchost",
+        "working_set_mb": 329
+      },
+      {
+        "name": "MsMpEng",
+        "working_set_mb": 325
+      },
+      {
+        "name": "ChatGPT",
+        "working_set_mb": 300
+      },
+      {
+        "name": "chrome",
+        "working_set_mb": 293
+      }
+    ],
+    "measurement_environment": "Local Codex restricted execution; Python 3.14.3; tracemalloc enabled in both phases"
+  },
+  "stopping_reason": {
+    "n": 25000000,
+    "limiting_resource": "interactive waiting time",
+    "time_budget_seconds": 30,
+    "memory_exhausted": false,
+    "explanation": "44.28 seconds for exact under tracemalloc exceeded the practical 30-second per-method budget; the hard RAM capacity was not reached."
+  }
+}

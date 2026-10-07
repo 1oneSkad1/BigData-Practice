@@ -18,6 +18,7 @@ better score by occasionally forgetting something it was given has not improved
 anything, it has broken the contract.
 """
 import hashlib
+import sys
 
 
 class NaiveFilter:
@@ -64,14 +65,36 @@ class YourFilter:
     observation.md asks.
     """
 
+    __slots__ = ("bits", "key")
+    K = 7  # k* = (m/n) ln 2 = 6.93 for the specified benchmark.
+
     def __init__(self, n_bits, seed=246):
-        raise NotImplementedError("write your filter")
+        self.key = hashlib.sha256(str(seed).encode()).digest()
+        self.bits = bytearray()
+        overhead = sys.getsizeof(self) + sys.getsizeof(self.key) + sys.getsizeof(self.bits)
+        payload = n_bits // 8 - overhead - 1  # bytearray's terminating byte
+        if payload < 1:
+            raise ValueError("budget cannot hold the Python object and bit array")
+        self.bits = bytearray(payload)
+        if self.memory_bits() > n_bits:
+            raise ValueError("Python runtime overhead exceeds budget")
+
+    def _indices(self, item):
+        digest = hashlib.shake_256(self.key + str(item).encode()).digest(8 * self.K)
+        m = len(self.bits) * 8
+        for offset in range(0, len(digest), 8):
+            yield int.from_bytes(digest[offset:offset + 8], "little") % m
 
     def add(self, item):
-        raise NotImplementedError
+        for index in self._indices(item):
+            self.bits[index >> 3] |= 1 << (index & 7)
 
     def __contains__(self, item):
-        raise NotImplementedError
+        return all(self.bits[index >> 3] & (1 << (index & 7))
+                   for index in self._indices(item))
 
     def memory_bits(self):
-        raise NotImplementedError
+        # All owned, persistent per-instance storage; class/code and transient
+        # hashing workspace are shared/execution costs, not retained data.
+        return 8 * (sys.getsizeof(self) + sys.getsizeof(self.key)
+                    + sys.getsizeof(self.bits))

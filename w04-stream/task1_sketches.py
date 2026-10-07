@@ -14,6 +14,7 @@ approximating.
     python3 task1_sketches.py --verify
 """
 import argparse, random
+import hashlib, math, statistics
 
 
 class BloomFilter:
@@ -28,13 +29,24 @@ class BloomFilter:
     """
 
     def __init__(self, m, k, seed=246):
-        raise NotImplementedError("write the Bloom filter")
+        if m <= 0 or k <= 0:
+            raise ValueError("m and k must be positive")
+        self.m, self.k = m, k
+        self.bits = bytearray((m + 7) // 8)
+        self.key = hashlib.sha256(str(seed).encode()).digest()
+
+    def _indices(self, item):
+        digest = hashlib.shake_256(self.key + str(item).encode()).digest(8 * self.k)
+        for offset in range(0, len(digest), 8):
+            yield int.from_bytes(digest[offset:offset + 8], "little") % self.m
 
     def add(self, item):
-        raise NotImplementedError
+        for index in self._indices(item):
+            self.bits[index >> 3] |= 1 << (index & 7)
 
     def __contains__(self, item):
-        raise NotImplementedError
+        return all(self.bits[index >> 3] & (1 << (index & 7))
+                   for index in self._indices(item))
 
     def expected_fp_rate(self, n_inserted):
         """The textbook's predicted false-positive rate after n insertions.
@@ -42,7 +54,9 @@ class BloomFilter:
         §4.4.2 derives it. Return the number, do not measure it - the harness
         measures separately and compares the two.
         """
-        raise NotImplementedError
+        if n_inserted < 0:
+            raise ValueError("n_inserted must be nonnegative")
+        return (-math.expm1(-self.k * n_inserted / self.m)) ** self.k
 
 
 def flajolet_martin(stream, n_hashes=64, seed=246):
@@ -67,7 +81,43 @@ def flajolet_martin(stream, n_hashes=64, seed=246):
 
     Return your estimate as a float.
     """
-    raise NotImplementedError("write Flajolet-Martin")
+    return fm_summary(stream, n_hashes, seed)["grouped"]
+
+
+def fm_summary(stream, n_hashes=64, seed=246):
+    """Stochastic FM: hash once, distribute items across bounded registers.
+
+    Independent digest halves select a register and count trailing zero bits.
+    Each register sees about D / n_hashes distinct items. Group geometric
+    means, then take their median and damp by a fixed factor of 1.526.
+    This is a heuristic bias adjustment, not a guarantee of unbiasedness.
+    Raw combining rules are also returned for the observation experiment.
+    """
+    if n_hashes <= 0:
+        raise ValueError("n_hashes must be positive")
+    maxima = [-1] * n_hashes
+    key = hashlib.sha256(str(seed).encode()).digest()
+    for item in stream:
+        digest = hashlib.blake2b(str(item).encode(), digest_size=16, key=key).digest()
+        bucket = int.from_bytes(digest[:8], "little") % n_hashes
+        value = int.from_bytes(digest[8:], "little")
+        zeros = (value & -value).bit_length() - 1 if value else 64
+        if zeros > maxima[bucket]:
+            maxima[bucket] = zeros
+    occupied = sum(r >= 0 for r in maxima)
+    if not occupied:
+        return {"grouped": 0.0, "raw_mean": 0.0, "raw_median": 0.0}
+    # Sparse regime: occupancy counting avoids estimates smaller than one.
+    if occupied < n_hashes:
+        estimate = -n_hashes * math.log1p(-occupied / n_hashes)
+    else:
+        groups = [2.0 ** statistics.mean(maxima[i:i + 8])
+                  for i in range(0, n_hashes, 8)]
+        estimate = n_hashes * statistics.median(groups) / 1.526
+    powers = [2.0 ** r if r >= 0 else 0.0 for r in maxima]
+    return {"grouped": float(estimate),
+            "raw_mean": n_hashes * statistics.mean(powers),
+            "raw_median": n_hashes * statistics.median(powers)}
 
 
 def reservoir_sample(stream, k, seed=246):
@@ -78,7 +128,18 @@ def reservoir_sample(stream, k, seed=246):
 
     Return a list of k items (or fewer if the stream was shorter).
     """
-    raise NotImplementedError("write reservoir sampling")
+    if k < 0:
+        raise ValueError("k must be nonnegative")
+    rng = random.Random(seed)
+    sample = []
+    for i, item in enumerate(stream):
+        if i < k:
+            sample.append(item)
+        else:
+            j = rng.randrange(i + 1)
+            if j < k:
+                sample[j] = item
+    return sample
 
 
 # ------------------------------------------------------------------- harness

@@ -62,6 +62,7 @@ def main():
     rows = []
     for n in [int(x) for x in a.sizes.split(",")]:
         true, t_exact, m_exact = exact_distinct(n)
+        print(f"  exact phase finished: n={n:,}, {t_exact:.2f}s, {m_exact / 1e6:.1f} MB", flush=True)
         row = {"n": n, "true_distinct": true, "exact_s": t_exact,
                "exact_peak_bytes": m_exact}
 
