@@ -1,16 +1,16 @@
-# Week 4 · Mining Data Streams 관찰
+# Week 4 · Mining Data Streams
 
-## Task 1 · 저장하지 않고 답하기
-- Bloom은 삽입 시 설정한 동일한 비트를 조회하며 비트를 지우지 않으므로 false negative가 없습니다. 예측식 `(1-exp(-kn/m))^k`는 0.860%, 실측은 0.840%였고, 차이는 유한한 질의 표본과 해시 충돌의 확률적 변동으로 설명됩니다.
-- FM은 64개 레지스터에 해시로 분배하는 stochastic averaging 변형입니다. 각 8개 레지스터의 `2^R` 기하평균 → 중앙값 → `64/1.526` 배율을 사용했으며, 1.526은 고정 휴리스틱 감쇠값입니다. 실제 19,953개에 대해 직접 산술평균 51,776, 중앙값 16,384, 선택한 결합 16,620(0.833배)이었고, 추가 10개 시드에서도 0.669~1.178배였습니다. 불편 추정이나 모든 입력의 2배 이내 정확성을 보장하지는 않습니다.
-- Reservoir는 `j = rng.randrange(i + 1)`와 `if j < k`에서 길이를 미리 몰라도 교체합니다. 새 항목의 진입 확률 `k/(i+1)`과 기존 항목의 생존 확률이 최종 `k/n`을 유지하며, 최대 k개만 저장합니다. 4,000회 검증의 항목별 횟수 spread는 8.9%였습니다.
+## Task 1
 
-## Task 2 · 정확한 계산의 실용적 한계
-- 이 PC에서 2,500만 항목의 exact 처리는 44.28초, 피크 메모리는 약 744.7MB였습니다. 대화형 실행에서 방법별 30초를 넘기면 부담스럽다는 기준으로 여기서 멈췄으며, 먼저 문제가 된 것은 시간입니다. RAM 부족이나 exact 계산 불가능을 관측한 것은 아닙니다.
-- exact 메모리는 distinct 수에 비례하는 O(n), FM은 고정 64개 레지스터의 O(1)입니다. 크기별 표, 끝점으로 계산한 성장률, 정확도 비율, CPU·RAM·백그라운드 프로그램은 `limits.md`와 JSON에 기록했습니다. n이 커져도 고정 레지스터 수의 상대 오차가 자동으로 개선되지는 않습니다.
-- 하루 방문자가 대략 수십만인지 수백만인지 판단할 때에는 2배 이내 추정이 유용하지만, 정확한 과금·광고 정산·작은 A/B 차이 비교에는 부족합니다. 이번 FM은 메모리를 크게 절약했지만 exact보다 더 느렸습니다.
+- Bloom never clears inserted bits, preventing false negatives; predicted/measured false positives were 0.860%/0.840% (sampling variation). Reservoir uses `randrange(i + 1) < k` for uniform k/n inclusion with only k stored items.
+- Stochastic FM combines grouped geometric means by their median, scaled by 64/1.526: 16,620 versus 19,953 true; raw mean/median gave 51,776/16,384. The fixed damping is heuristic.
 
-## Task 3 · 같은 메모리로 오탐 줄이기
-- `p(k)=(1-exp(-kn/m))^k`에서 `x=kn/m`로 치환하여 `d ln p / dk = ln(1-exp(-x)) + x/(exp(x)-1) = 0`을 풀면 `x=ln 2`, `k*=(m/n)ln 2`입니다. 10비트/항목이면 6.931이므로 1개 해시 대신 7개를 사용했습니다.
-- 이상적인 Bloom 하한은 `exp(-10(ln 2)^2)=0.8193%`이고, 실측은 1,793/200,000=0.8965%(표시는 0.897%)로 baseline 9.5115%에서 90.57% 감소했습니다. false negative는 0이며 `strong`을 만족했습니다. 객체 48B+키 65B+bytearray 9,887B=80,000비트를 모두 계산하여 실제 비트 배열은 78,640비트이고, 이에 따른 이론 예측 0.8899%에 가깝습니다. 공유 코드/클래스와 호출 중 임시 해시 작업 공간은 지속 저장 예산에서 제외하며, 전체 프로세스 RSS가 10KB라는 뜻은 아닙니다.
-- n이 알려지지 않으면 비트 점유율로 포화를 감시하고, 메모리 확장이 가능할 때 오류 예산을 나눈 scalable Bloom 층을 추가하겠습니다. n을 작게 예상하면 포화와 오탐이 늘고, 크게 예상하면 공간을 낭비합니다. 엄격한 고정 예산으로 무한히 많은 삽입을 받으면 낮은 오탐률을 계속 보장할 수 없습니다.
+## Task 2
+
+- At 25 million items, exact counting took 44.28s and 744.7MB, exceeding my 30s waiting budget; time, rather than RAM exhaustion, stopped the experiment.
+- Exact memory grew O(n), while FM stayed near 4KB, O(1); accuracy did not improve consistently. Factor-two estimates suit rough traffic sizing, but not billing; see `limits.md` for measurements and machine details.
+
+## Task 3
+
+- Minimizing `(1-exp(-kn/m))^k` gives `k*=(m/n)ln 2≈7` and a 0.8193% floor at 10 bits/item. Measured false positives fell from 9.511% to 0.897%, with zero false negatives and 80,000 retained bits including object overhead.
+- With unknown n, monitor saturation and add scalable Bloom layers if memory permits: guessing low increases false positives, while guessing high wastes space. Unlimited insertions cannot retain low error under a fixed budget.
